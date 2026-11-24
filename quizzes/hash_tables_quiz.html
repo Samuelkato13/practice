@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hash Tables Quiz</title>
+<style>
+:root{--bg:#f6f7f4;--card:#fff;--ink:#1d2321;--mute:#5d6762;--line:#d9ddd8;--ok:#1f7a4d;--okbg:#e3f3ea;--bad:#b3261e;--badbg:#fbe9e7;--acc:#2b5d8a}
+@media (prefers-color-scheme:dark){:root{--bg:#161a18;--card:#202623;--ink:#eceeea;--mute:#a2aba6;--line:#363e3a;--ok:#6fd19a;--okbg:#1c3327;--bad:#ff9a92;--badbg:#3a2220;--acc:#8fbbe4}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.8rem;margin:.2em 0}
+.sub{color:var(--mute);margin:0 0 16px}
+table{border-collapse:collapse;font-size:.95rem;margin:8px 0 20px}td,th{border:1px solid var(--line);padding:4px 12px;text-align:left}
+.q{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin:14px 0}
+.q h2{font-size:1.05rem;margin:0 0 10px}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:6px 0;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.opt:disabled{cursor:default}.opt.right{background:var(--okbg);border-color:var(--ok)}.opt.wrong{background:var(--badbg);border-color:var(--bad)}
+.why{display:none;margin-top:10px;padding:10px 12px;border-left:3px solid var(--acc);color:var(--mute);font-size:.95rem}.q.done .why{display:block}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;z-index:2}
+button.ctl{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+#result{display:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin:14px 0;font-size:1.1rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Hash Tables Quiz</h1>
+<p class="sub">20 questions, 1 mark each. Click an answer to see the mark and the reason.</p>
+<p>Rule used unless stated: <b>h(key) = (alphabet position of first letter) mod 5</b></p>
+<table><tr><th>Slot</th><th>Keys</th></tr><tr><td>0</td><td>empty</td></tr><tr><td>1</td><td>Park, Pond</td></tr><tr><td>2</td><td>Garden, Gate</td></tr><tr><td>3</td><td>Home, Market</td></tr><tr><td>4</td><td>Stall</td></tr></table>
+<div class="bar"><span id="score">Score: 0 / 20</span><button class="ctl" id="reset">Reset</button></div>
+<div id="quiz"></div><div id="result"></div>
+</main>
+<script>
+const Q=[
+["A hash function for a table with m slots returns a value in the range:",["1 to m","0 to m − 1","0 to n (n = number of keys)","1 to m − 1"],1,"Slots are numbered 0 to m−1, so 5 slots use 0 to 4."],
+["Using the rule above, which slot does Home (H = 8) go to?",["1","2","3","4"],2,"8 mod 5 = 3."],
+["A collision happens when:",["two different keys hash to the same slot","the same key is inserted twice","a search cannot find its key","the table has no empty slots left"],0,"A collision is two different keys mapping to one slot. It is normal, not an error."],
+["Why can collisions never be completely avoided?",["Hash functions are always badly written","Linked lists are slow","Keys must be sorted first","There are more possible keys than slots"],3,"More possible keys than slots means some keys must share a slot (pigeonhole)."],
+["Two keys have the same hash value. What can you conclude?",["They are equal keys","They may be different keys, so equality must still be checked","One of them must be deleted","The hash function is broken"],1,"The hash only chooses the slot. Equality confirms the key."],
+["In separate chaining, each slot holds:",["a single key only","the next free slot's index","a linked list of the keys that hash there","a sorted array of all keys"],2,"Separate chaining keeps a linked list in each slot."],
+["Searching for Hill (H = 8) in the example table: how many names are read before you know it is absent?",["2 (Home, then Market)","7","1","0, because slot 3 is empty"],0,"Hill goes to slot 3. Read Home, then Market, then the list ends. Slot 3 is not empty."],
+["To delete Park from slot 1 in the chained table, you should:",["shift Pond into slot 0","rehash the whole table","mark the slot as permanently full","unlink Park from the list and keep Pond"],3,"It is a linked-list delete. Emptying the slot would also remove Pond."],
+["A table stores 12 keys in 4 slots. The load factor α is:",["0.33","8","3","48"],2,"α = n/m = 12/4 = 3."],
+["In the example table, α = 7/5 = 1.4. Which statement is true?",["Every list has length exactly 1.4","The average list length is 1.4, yet three slots still hold two names","The longest list has length 1.4","There are no collisions"],1,"α is only an average. Actual lengths are 0, 2, 2, 2, 1."],
+["With a hash that spreads the keys, the expected cost of a search in a chained table is:",["Θ(n)","Θ(log n)","Θ(α)","Θ(1 + α)"],3,"The 1 is the hash and slot access; α is the expected list scan."],
+["In Θ(1 + α), the \"1\" represents:",["computing the hash and accessing the slot, paid even if the slot is empty","the one key you are searching for","the first node of the list only","the time to grow the table"],0,"Every search pays for the hash and the slot access, even when the slot is empty."],
+["If every key lands in the same slot, a search costs:",["Θ(1)","Θ(log n)","Θ(n)","Θ(α)"],2,"The table becomes one linked list of n names. Same α, different hash, very different cost."],
+["Which two conditions does the expected Θ(1 + α) bound need?",["Sorted keys and a fixed-size table","A hash that spreads the actual keys, and a table that grows before lists get long","A tiny hash function and no deletions","Unique first letters and an empty slot 0"],1,"Spreading hash plus a bounded α (growing table) keeps lists short."],
+["When a hash table grows, every key must be filed again because:",["a key's slot depends on the table size m","the keys have changed value","linked lists cannot be copied","Python deletes old slots automatically"],0,"The slot is computed using m, so a new m means new slots."],
+["Under the sum-of-letter-positions mod 5 rule (Garden = 49, Gate = 33, Home = 41, Park = 46), which pair still collides?",["Garden and Gate","Gate and Home","Garden and Park","Home and Park"],3,"Home: 41 mod 5 = 1. Park: 46 mod 5 = 1. Garden = 4 and Gate = 3 are separated."],
+["Which task is a hash table bad at, compared with an AVL tree?",["Finding a key","Inserting a key","Reading keys in A-to-Z order","Checking if a key exists"],2,"A hash table keeps no order, so you must sort first. An AVL tree gives sorted order by inorder walk."],
+["In open addressing, what happens on a collision?",["A linked list is created in that slot","The key walks right to the next free slot","The new key replaces the old one","The table is rebuilt immediately"],1,"Open addressing uses one array and probes right. Lists in slots are separate chaining."],
+["Which of these cannot be used as a Python dict key?",["A list, e.g. [1, 2]","A tuple, e.g. (1, 2)","A string, e.g. \"Park\"","An integer, e.g. 42"],0,"A list's contents can change, so its hash could change while stored. Keys must be hashable."],
+["What is the main drawback of direct addressing (one slot per possible key)?",["Lookups take Θ(n)","It cannot store strings","It needs sorted keys","It needs a slot for every possible key, so most slots stay empty"],3,"Lookups are Θ(1), but 26 slots for 7 names (or one per student ID) wastes space."]
+];
+const L="ABCD";let got=0,done=0;
+const quiz=document.getElementById("quiz"),sc=document.getElementById("score"),res=document.getElementById("result");
+function build(){quiz.innerHTML="";got=0;done=0;res.style.display="none";sc.textContent="Score: 0 / 20";Q.forEach((q,i)=>{const d=document.createElement("div");d.className="q";const h=document.createElement("h2");h.textContent=(i+1)+". "+q[0];d.appendChild(h);q[1].forEach((t,j)=>{const b=document.createElement("button");b.className="opt";b.textContent=L[j]+") "+t;b.onclick=()=>{if(d.classList.contains("done"))return;d.classList.add("done");done++;const bs=d.querySelectorAll(".opt");bs.forEach(x=>x.disabled=true);bs[q[2]].classList.add("right");if(j===q[2])got++;else b.classList.add("wrong");sc.textContent="Score: "+got+" / 20";if(done===20){res.style.display="block";res.textContent="Final score: "+got+" / 20 ("+Math.round(got*5)+"%)"}};d.appendChild(b)});const w=document.createElement("div");w.className="why";w.textContent="Answer: "+L[q[2]]+". "+q[3];d.appendChild(w);quiz.appendChild(d)})}
+document.getElementById("reset").onclick=()=>{build();window.scrollTo(0,0)};build();
+</script>
+</body>
+</html>
